@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: '*/master']], 
+                    doGenerateSubmoduleConfigurations: false, 
+                    extensions: [], 
+                    submoduleCfg: [], 
+                    userRemoteConfigs: [[url: 'https://github.com/danielleinov/forcast.git']]
+                ])
+            }
+        }
+        stage('Verify MD5') {
+            steps {
+                sh '''#!/bin/bash
+                    md5sum=$(cat ./md5sum)
+                    check=$(md5sum forcast_collector.py)
+                    if [ "$md5sum" != "$check" ]; then
+						echo "MD5 verfication failure"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+        stage('Execute Script') {
+            steps {
+                sh "python3 ./forcast_collector.py"
+            }
+        }
+        stage('Validate JSON Structure') {
+            steps {
+                sh '''
+                    cat forcast_data.json | python3 -c "import sys,json;json.loads(sys.stdin.read());print ('OK')"
+                '''
+            }
+        }
+    }
+}
