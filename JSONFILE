@@ -19,7 +19,7 @@ pipeline {
                     md5sum=$(cat ./md5sum)
                     check=$(md5sum forcast_collector.py)
                     if [ "$md5sum" != "$check" ]; then
-						echo "MD5 verfication failure"
+			echo "MD5 verfication failure"
                         exit 1
                     fi
                 '''
